@@ -76,13 +76,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		<cfargument name="inner"/>
 		<cfargument name="context"/>
 		<cfset var ctx = get(arguments.tagName, context) />
-		<cfif isStruct(ctx) and !StructIsEmpty(ctx)>
+		<cfif arguments.type neq "^" and isStruct(ctx) and !StructIsEmpty(ctx)>
 			<cfreturn render(arguments.inner, ctx) />
-		<cfelseif isQuery(ctx) AND ctx.recordCount>
+		<cfelseif arguments.type neq "^" and isQuery(ctx) AND ctx.recordCount>
 			<cfreturn renderQuerySection(arguments.inner, ctx) />
-		<cfelseif isArray(ctx) and !ArrayIsEmpty(ctx)>
+		<cfelseif arguments.type neq "^" and isArray(ctx) and !ArrayIsEmpty(ctx)>
 			<cfreturn renderArraySection(arguments.inner, ctx) />
-		<cfelseif structKeyExists(arguments.context, arguments.tagName) and isCustomFunction(arguments.context[arguments.tagName])>
+		<cfelseif arguments.type neq "^" and structKeyExists(arguments.context, arguments.tagName) and isCustomFunction(arguments.context[arguments.tagName])>
 			<cfreturn evaluate("context.#tagName#(inner)") />
 		</cfif>
 		<cfif convertToBoolean(ctx) xor arguments.type eq "^">
@@ -98,6 +98,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		</cfif>
 		<cfif IsSimpleValue(value)>
 			<cfreturn value neq "" />
+		</cfif>
+		<cfif isStruct(arguments.value)>
+			<cfreturn !StructIsEmpty(arguments.value)>
+		</cfif>
+		<cfif isQuery(arguments.value)>
+			<cfreturn arguments.value.recordcount neq 0>
+		</cfif>
+		<cfif isArray(arguments.value)>
+			<cfreturn !ArrayIsEmpty(arguments.value)>
 		</cfif>
 		<cfreturn false>
 	</cffunction>

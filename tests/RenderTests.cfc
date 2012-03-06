@@ -210,4 +210,26 @@
     <cfset expected = "<ul><li>Say Goodnight, Gracie.</li><li>Goodnight</li></ul>" />
   </cffunction>
 
+	<cffunction name="invertedSectionHiddenIfStructureNotEmpty">
+		<cfset context =  {set = {something='whatever'}}  />
+		<cfset template = "{{##set}}This sentence should be showing.{{/set}}{{^set}}This sentence should not.{{/set}}" />
+		<cfset expected = "This sentence should be showing." />
+	</cffunction>
+	
+	<cffunction name="invertedSectionHiddenIfQueryNotEmpty">
+	    <cfset contacts = queryNew("name,phone")/>
+	    <cfset queryAddRow(contacts)>
+	    <cfset querySetCell(contacts, "name", "Jenny") />
+	    <cfset querySetCell(contacts, "phone", "867-5309") />
+	    <cfset context = {set = contacts} />
+		<cfset template = "{{##set}}This sentence should be showing.{{/set}}{{^set}}This sentence should not.{{/set}}" />
+		<cfset expected = "This sentence should be showing." />
+	</cffunction>
+	
+	<cffunction name="invertedSectionHiddenIfArrayNotEmpty">
+	    <cfset context =  {set = [1]}  />
+		<cfset template = "{{##set}}This sentence should be showing.{{/set}}{{^set}}This sentence should not.{{/set}}" />
+		<cfset expected = "This sentence should be showing." />
+	</cffunction>
+
 </cfcomponent>
