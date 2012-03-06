@@ -4,7 +4,7 @@
     <cfset stache = createObject("component", "mustache.Mustache").init()/>
   </cffunction>
 
-  <cffunction name="tearDown">
+   <cffunction name="tearDown">
     <cfset assertEquals(expected, stache.render(template, context)) />
   </cffunction>
 

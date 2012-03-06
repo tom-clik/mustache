@@ -37,67 +37,76 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cfset variables.SectionRegEx = CreateObject("java","java.util.regex.Pattern").compile("\{\{(##|\^)\s*(\w+)\s*}}(.*?)\{\{/\s*\2\s*\}\}", 32)>
 	<cfset variables.TagRegEx = CreateObject("java","java.util.regex.Pattern").compile("\{\{(!|\{|&|\>)?\s*(\w+).*?\}?\}\}", 32) />
 
-  <cffunction name="init" output="false">
-    <cfreturn this />
-  </cffunction>
+	<cffunction name="init" output="false">
+		<cfreturn this />
+	</cffunction>
 
-  <cffunction name="render" output="false">
-    <cfargument name="template" default="#readMustacheFile(ListLast(getMetaData(this).name, '.'))#"/>
-    <cfargument name="context" default="#this#"/>
-    <cfset template = renderSections(template, context) />
-    <cfreturn renderTags(template, context)/>
-  </cffunction>
+	<cffunction name="render" output="false">
+		<cfargument name="template" default="#readMustacheFile(ListLast(getMetaData(this).name, '.'))#"/>
+		<cfargument name="context" default="#this#"/>
+		<cfset arguments.template = renderSections(arguments.template, arguments.context) />
+		<cfreturn renderTags(arguments.template, arguments.context)/>
+	</cffunction>
 
-  <cffunction name="renderSections" access="private" output="false">
-    <cfargument name="template" />
-    <cfargument name="context" />
-    <cfset var tag = ""/>
-    <cfset var tagName = ""/>
-    <cfset var type = "" />
-    <cfset var inner = "" />
-    <cfset var matches = arrayNew(1) />
-    <cfloop condition = "true" >
-      <cfset matches = ReFindNoCaseValues(template, variables.SectionRegEx)>
-      <cfif arrayLen(matches) eq 0>
-        <cfbreak>
-      </cfif>
-      <cfset tag = matches[1] />
-      <cfset type = matches[2] />
-      <cfset tagName = matches[3] />
-      <cfset inner = matches[4] />
-      <cfset template = replace(template, tag, renderSection(tagName, type, inner, context))/>
-    </cfloop>
-    <cfreturn template/>
-  </cffunction>
+	<cffunction name="renderSections" access="private" output="false">
+		<cfargument name="template" />
+		<cfargument name="context" />
+		<cfset var loc = {}>
+	
+		<cfloop condition = "true">
+			<cfset loc.matches = ReFindNoCaseValues(arguments.template, variables.SectionRegEx)>
+			<cfif arrayLen(loc.matches) eq 0>
+				<cfbreak>
+			</cfif>
+			<cfset loc.tag = loc.matches[1] />
+			<cfset loc.type = loc.matches[2] />
+			<cfset loc.tagName = loc.matches[3] />
+			<cfset loc.inner = loc.matches[4] />
+			<cfset arguments.template = replace(arguments.template, loc.tag, renderSection(loc.tagName, loc.type, loc.inner, arguments.context))/>
+		</cfloop>
+		<cfreturn arguments.template/>
+	</cffunction>
 
 	<cffunction name="renderSection" access="private" output="false">
 		<cfargument name="tagName"/>
 		<cfargument name="type"/>
 		<cfargument name="inner"/>
 		<cfargument name="context"/>
-		<cfset var ctx = get(arguments.tagName, context) />
-		<cfif arguments.type neq "^" and isStruct(ctx) and !StructIsEmpty(ctx)>
-			<cfreturn render(arguments.inner, ctx) />
-		<cfelseif arguments.type neq "^" and isQuery(ctx) AND ctx.recordCount>
-			<cfreturn renderQuerySection(arguments.inner, ctx) />
-		<cfelseif arguments.type neq "^" and isArray(ctx) and !ArrayIsEmpty(ctx)>
-			<cfreturn renderArraySection(arguments.inner, ctx) />
+		<cfset var loc = {}>
+
+		<cfset loc.ctx = get(arguments.tagName, arguments.context) />
+		<cfif arguments.type neq "^" and isStruct(loc.ctx) and !StructIsEmpty(loc.ctx)>
+			<cfreturn render(arguments.inner, loc.ctx) />
+		<cfelseif arguments.type neq "^" and isQuery(loc.ctx) AND loc.ctx.recordCount>
+			<cfreturn renderQuerySection(arguments.inner, loc.ctx) />
+		<cfelseif arguments.type neq "^" and isArray(loc.ctx) and !ArrayIsEmpty(loc.ctx)>
+			<cfreturn renderArraySection(arguments.inner, loc.ctx) />
 		<cfelseif arguments.type neq "^" and structKeyExists(arguments.context, arguments.tagName) and isCustomFunction(arguments.context[arguments.tagName])>
-			<cfreturn evaluate("context.#tagName#(inner)") />
+			<cfreturn evaluate("arguments.context.#arguments.tagName#(arguments.inner)") />
 		</cfif>
-		<cfif convertToBoolean(ctx) xor arguments.type eq "^">
-			<cfreturn inner />
+	
+		<cfif arguments.type eq "^" xor convertToBoolean(loc.ctx)>
+			<cfreturn arguments.inner />
 		</cfif>
 		<cfreturn "" />
 	</cffunction>
 
 	<cffunction name="convertToBoolean">
 		<cfargument name="value"/>
-		<cfif isBoolean(value)>
-			<cfreturn value />
+		<cfif isBoolean(arguments.value)>
+			<cfreturn arguments.value />
 		</cfif>
-		<cfif IsSimpleValue(value)>
-			<cfreturn value neq "" />
+		<cfif IsSimpleValue(arguments.value)>
+			<cfreturn arguments.value neq "" />
+		</cfif>
+		<cfif isStruct(arguments.value)>
+			<cfreturn !StructIsEmpty(arguments.value)>
+		</cfif>
+		<cfif isQuery(arguments.value)>
+			<cfreturn arguments.value.recordcount neq 0>
+		</cfif>
+		<cfif isArray(arguments.value)>
+			<cfreturn !ArrayIsEmpty(arguments.value)>
 		</cfif>
 		<cfif isStruct(arguments.value)>
 			<cfreturn !StructIsEmpty(arguments.value)>
@@ -111,107 +120,108 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		<cfreturn false>
 	</cffunction>
 
-  <cffunction name="renderQuerySection" access="private" output="false">
-    <cfargument name="template"/>
-    <cfargument name="context"/>
-    <cfset var result = [] />
-    <cfloop query="context">
-      <cfset ArrayAppend(result, render(template, context)) />
-    </cfloop>
-    <cfreturn ArrayToList(result, "") />
-  </cffunction>
+	<cffunction name="renderQuerySection" access="private" output="false">
+		<cfargument name="template"/>
+		<cfargument name="context"/>
+		<cfset var result = [] />
+		<cfloop query="arguments.context">
+		<cfset ArrayAppend(result, render(arguments.template, arguments.context)) />
+		</cfloop>
+		<cfreturn ArrayToList(result, "") />
+	</cffunction>
 
-  <cffunction name="renderArraySection" access="private" output="false">
-    <cfargument name="template"/>
-    <cfargument name="context"/>
-    <cfset var result = [] />
-    <cfset var item = "" />
-    <cfloop array="#context#" index="item">
-      <cfset ArrayAppend(result, render(template, item)) />
-    </cfloop>
-    <cfreturn ArrayToList(result, "") />
-  </cffunction>
+	<cffunction name="renderArraySection" access="private" output="false">
+		<cfargument name="template"/>
+		<cfargument name="context"/>
+		<cfset var loc = {}>
 
+		<cfset loc.result = [] />
+		<cfloop array="#arguments.context#" index="loc.item">
+			<cfset ArrayAppend(loc.result, render(arguments.template, loc.item)) />
+		</cfloop>
+		<cfreturn ArrayToList(loc.result, "") />
+	</cffunction>
 
-  <cffunction name="renderTags" access="private" output="false">
-    <cfargument name="template"/>
-    <cfargument name="context" />
-    <cfset var tag = ""/>
-    <cfset var tagName = ""/>
-    <cfset var matches = arrayNew(1) />
-    <cfloop condition = "true" >
-      <cfset matches = ReFindNoCaseValues(template, variables.TagRegEx) />
-      <cfif arrayLen(matches) eq 0>
-        <cfbreak>
-      </cfif>
-      <cfset tag = matches[1]/>
-      <cfset type = matches[2] />
-      <cfset tagName = matches[3] />
-      <cfset template = replace(template, tag, renderTag(type, tagName, context))/>
-    </cfloop>
-    <cfreturn template/>
-  </cffunction>
+	<cffunction name="renderTags" access="private" output="false">
+		<cfargument name="template"/>
+		<cfargument name="context" />
+		<cfset var loc = {}>
+		
+		<cfloop condition = "true" >
+			<cfset loc.matches = ReFindNoCaseValues(arguments.template, variables.TagRegEx) />
+			<cfif arrayLen(loc.matches) eq 0>
+				<cfbreak>
+			</cfif>
+			<cfset loc.tag = loc.matches[1]/>
+			<cfset loc.type = loc.matches[2] />
+			<cfset loc.tagName = loc.matches[3] />
+			<cfset arguments.template = replace(arguments.template, loc.tag, renderTag(loc.type, loc.tagName, arguments.context))/>
+		</cfloop>
+		<cfreturn arguments.template/>
+	</cffunction>
 
-  <cffunction name="renderTag" access="private" output="false">
-    <cfargument name="type" />
-    <cfargument name="tagName" />
-    <cfargument name="context" />
-    <cfif type eq "!">
-      <cfreturn "" />
-    <cfelseif type eq "{" or type eq "&">
-      <cfreturn get(tagName, context) />
-    <cfelseif type eq ">">
-      <cfreturn render(readMustacheFile(tagName), context) />
-    <cfelse>
-      <cfreturn htmlEditFormat(get(tagName, context)) />
-    </cfif>
-  </cffunction>
-
-  <cffunction name="readMustacheFile" access="private" output="false">
-    <cfargument name="filename" />
-    <cfset var template="" />
-    <cffile action="read" file="#getDirectoryFromPath(getMetaData(this).path)##filename#.mustache" variable="template"/>
-    <cfreturn trim(template)/>
-  </cffunction>
-
-  <cffunction name="get" access="private" output="false">
-    <cfargument name="key" />
-    <cfargument name="context"/>
-    <cfif isStruct(context) && structKeyExists(context, key) >
-      <cfif isCustomFunction(context[key])>
-        <cfreturn evaluate("context.#key#('')")>
-      <cfelse>
-        <cfreturn context[key]/>
-      </cfif>
-    <cfelseif isQuery(context)>
-			<cfif listContainsNoCase(context.columnList, key)>
-      	<cfreturn context[key][context.currentrow] />
-    	<cfelse>
-				<cfreturn "" />
-	    </cfif>
+	<cffunction name="renderTag" access="private" output="false">
+		<cfargument name="type" />
+		<cfargument name="tagName" />
+		<cfargument name="context" />
+		<cfif arguments.type eq "!">
+			<cfreturn "" />
+		<cfelseif arguments.type eq "{" or arguments.type eq "&">
+			<cfreturn get(arguments.tagName, arguments.context) />
+		<cfelseif arguments.type eq ">">
+			<cfreturn render(readMustacheFile(arguments.tagName), arguments.context) />
 		<cfelse>
-      <cfreturn "" />
-    </cfif>
-  </cffunction>
+			<cfreturn htmlEditFormat(get(arguments.tagName, arguments.context)) />
+		</cfif>
+	</cffunction>
 
-  <cffunction name="ReFindNoCaseValues" access="private" output="false">
-    <cfargument name="text"/>
-    <cfargument name="re"/>
-    <cfset var results = arrayNew(1) />
-    <cfset var matcher = arguments.re.matcher(arguments.text)/>
-    <cfset var i = 0 />
-    <cfset var nextMatch = "" />
-    <cfif matcher.Find()>
-      <cfloop index="i" from="0" to="#matcher.groupCount()#">
-        <cfset nextMatch = matcher.group(i) />
-        <cfif isDefined('nextMatch')>
-          <cfset arrayAppend(results, nextMatch) />
-        <cfelse>
-          <cfset arrayAppend(results, "") />
-        </cfif>
-      </cfloop>
-    </cfif>
-    <cfreturn results />
-  </cffunction>
+	<cffunction name="readMustacheFile" access="private" output="false">
+		<cfargument name="filename" />
+		<cfset var template="" />
+		<cffile action="read" file="#getDirectoryFromPath(getMetaData(this).path)##arguments.filename#.mustache" variable="template"/>
+		<cfreturn trim(template)/>
+	</cffunction>
+
+	<cffunction name="get" access="private" output="false">
+		<cfargument name="key" />
+		<cfargument name="context"/>
+		<cfif isStruct(arguments.context) && structKeyExists(arguments.context, arguments.key) >
+			<cfif isCustomFunction(arguments.context[arguments.key])>
+				<cfreturn evaluate("arguments.context.#arguments.key#('')")>
+			<cfelse>
+				<cfreturn arguments.context[arguments.key]/>
+			</cfif>
+		<cfelseif isQuery(arguments.context)>
+			<cfif listContainsNoCase(arguments.context.columnList, arguments.key)>
+				<cfreturn arguments.context[arguments.key][arguments.context.currentrow] />
+			<cfelse>
+				<cfreturn "" />
+			</cfif>
+		<cfelse>
+			<cfreturn "" />
+		</cfif>
+	</cffunction>
+
+	<cffunction name="ReFindNoCaseValues" access="private" output="false">
+		<cfargument name="text"/>
+		<cfargument name="re"/>
+		<cfset var loc = {}>
+		
+		<cfset loc.results = []/>
+		<cfset loc.matcher = arguments.re.matcher(arguments.text)/>
+		<cfset loc.i = 0 />
+		<cfset loc.nextMatch = "" />
+		<cfif loc.matcher.Find()>
+			<cfloop index="loc.i" from="0" to="#loc.matcher.groupCount()#">
+				<cfset loc.nextMatch = loc.matcher.group(loc.i) />
+				<cfif isDefined('loc.nextMatch')>
+					<cfset arrayAppend(loc.results, loc.nextMatch) />
+				<cfelse>
+					<cfset arrayAppend(loc.results, "") />
+				</cfif>
+			</cfloop>
+		</cfif>
+		<cfreturn loc.results />
+	</cffunction>
 
 </cfcomponent>
