@@ -27,7 +27,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --->
 
-<cfcomponent>
+<cfcomponent output="false">
 
 	<!---
 	reference for string building
@@ -39,7 +39,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cfset variables.partials = {} />
 
 	<cffunction name="init" output="false">
-		<cfargument name="partials" type="struct" hint="the partial objects" default="#{}#">
+		<cfargument name="partials" hint="the partial objects" default="#{}#">
 
 		<cfset variables.partials = arguments.partials />
 		<cfreturn this />
@@ -48,7 +48,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="render" output="false">
 		<cfargument name="template" default="#readMustacheFile(ListLast(getMetaData(this).name, '.'))#"/>
 		<cfargument name="context" default="#this#"/>
-		<cfargument name="partials" type="struct" hint="the partial objects" required="true" default="#{}#">
+		<cfargument name="partials" hint="the partial objects" required="true" default="#{}#">
 
 		<cfset structAppend(arguments.partials, variables.partials, false)/>
 		<cfset arguments.template = renderSections(arguments.template, arguments.context, arguments.partials) />
@@ -58,7 +58,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="renderSections" access="private" output="false">
 		<cfargument name="template" />
 		<cfargument name="context" />
-		<cfargument name="partials" type="struct" />
+		<cfargument name="partials" />
 		<cfset var loc = {}>
 	
 		<cfloop condition = "true">
@@ -80,7 +80,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		<cfargument name="type"/>
 		<cfargument name="inner"/>
 		<cfargument name="context"/>
-		<cfargument name="partials" type="struct" />
+		<cfargument name="partials" />
 		<cfset var loc = {}>
 
 		<cfset loc.ctx = get(arguments.tagName, arguments.context) />
@@ -132,7 +132,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="renderQuerySection" access="private" output="false">
 		<cfargument name="template"/>
 		<cfargument name="context"/>
-		<cfargument name="partials" type="struct" />
+		<cfargument name="partials" />
 		<cfset var result = [] />
 		<cfloop query="arguments.context">
 		<cfset ArrayAppend(result, render(arguments.template, arguments.context, arguments.partials)) />
@@ -143,7 +143,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="renderArraySection" access="private" output="false">
 		<cfargument name="template"/>
 		<cfargument name="context"/>
-		<cfargument name="partials" type="struct" />
+		<cfargument name="partials" />
 		<cfset var loc = {}>
 
 		<cfset loc.result = [] />
@@ -156,7 +156,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="renderTags" access="private" output="false">
 		<cfargument name="template"/>
 		<cfargument name="context" />
-		<cfargument name="partials" type="struct" />
+		<cfargument name="partials" />
 		<cfset var loc = {}>
 		
 		<cfloop condition = "true" >
@@ -176,7 +176,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		<cfargument name="type" />
 		<cfargument name="tagName" />
 		<cfargument name="context" />
-		<cfargument name="partials" type="struct" />
+		<cfargument name="partials" />
 		<cfif arguments.type eq "!">
 			<cfreturn "" />
 		<cfelseif arguments.type eq "{" or arguments.type eq "&">
@@ -191,7 +191,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="renderPartial" hint="If we have the partial registered, use that, otherwise use the registered text" access="private" returntype="string" output="false">
 		<cfargument name="name" hint="the name of the partial" required="true">
 		<cfargument name="context" hint="the context" required="true">
-		<cfargument name="partials" type="struct" hint="the partial objects" required="true">
+		<cfargument name="partials" hint="the partial objects" required="true">
 
 		<cfif structKeyExists(arguments.partials, arguments.name)>
 			<cfreturn render(arguments.partials[arguments.name], arguments.context, arguments.partials) />
@@ -248,6 +248,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 			</cfloop>
 		</cfif>
 		<cfreturn loc.results />
+	</cffunction>
+
+	<cffunction name="getPartials" access="public" output="false">
+		<cfreturn variables.partials />
+	</cffunction>
+
+	<cffunction name="setPartials" access="public" returntype="void" output="false">
+		<cfargument name="partials" required="true">
+		<cfset variables.partials = arguments.partials />
 	</cffunction>
 
 </cfcomponent>
