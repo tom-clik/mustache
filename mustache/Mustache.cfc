@@ -102,6 +102,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 	<cffunction name="convertToBoolean">
 		<cfargument name="value"/>
+
 		<cfif isBoolean(arguments.value)>
 			<cfreturn arguments.value />
 		</cfif>
@@ -117,15 +118,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		<cfif isArray(arguments.value)>
 			<cfreturn !ArrayIsEmpty(arguments.value)>
 		</cfif>
-		<cfif isStruct(arguments.value)>
-			<cfreturn !StructIsEmpty(arguments.value)>
-		</cfif>
-		<cfif isQuery(arguments.value)>
-			<cfreturn arguments.value.recordcount neq 0>
-		</cfif>
-		<cfif isArray(arguments.value)>
-			<cfreturn !ArrayIsEmpty(arguments.value)>
-		</cfif>
+
 		<cfreturn false>
 	</cffunction>
 
