@@ -39,7 +39,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cfset variables.partials = {} />
 
 	<cffunction name="init" output="false">
-		<cfargument name="partials" hint="the partial objects" default="#{}#">
+		<cfargument name="partials" hint="the partial objects" default="#StructNew()#">
 
 		<cfset variables.partials = arguments.partials />
 		<cfreturn this />
@@ -48,7 +48,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="render" output="false">
 		<cfargument name="template" default="#readMustacheFile(ListLast(getMetaData(this).name, '.'))#"/>
 		<cfargument name="context" default="#this#"/>
-		<cfargument name="partials" hint="the partial objects" required="true" default="#{}#">
+		<cfargument name="partials" hint="the partial objects" required="true" default="#StructNew()#">
 
 		<cfset structAppend(arguments.partials, variables.partials, false)/>
 		<cfset arguments.template = renderSections(arguments.template, arguments.context, arguments.partials) />
