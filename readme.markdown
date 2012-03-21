@@ -2,7 +2,11 @@
 
 Chris Wanstrath's [Mustache](http://mustache.github.com/) templates for [ColdFusion](https://github.com/pmcelhaney/Mustache.cfc).
 
-## Basic Usage                              
+## Installation
+
+Mustache is a single component. To install, download the Mustache.cfc file from the mustache directory.
+
+## Basic Usage
 
     <cfset mustache = createObject("component", "Mustache").init()>
     <cfset template = "Hello, {{thing}}!">
@@ -10,7 +14,6 @@ Chris Wanstrath's [Mustache](http://mustache.github.com/) templates for [ColdFus
     <cfset context['thing'] = 'World'>
 
     <cfouptut>#mustache.render(template, context)#</cfouptut>
-
 
 ## Creating Views
                 
@@ -21,7 +24,6 @@ Given a template named Winner.mustache:
     {{#in_ca}}
     Well, ${{taxed_value}}, after taxes.
     {{/in_ca}}
-                   
 
 And a view named Winner.cfc:
 
@@ -34,7 +36,7 @@ And a view named Winner.cfc:
 You can render the view like so:
 
     <cfset winner = createObject("component", "Winner")>
-    <cfset winner.name = "Patrick">   
+    <cfset winner.name = "Patrick">
     <cfset winner.value = "1000">
     <cfset winner.in_ca = true>
     <cfoutput>#winner.render()#</cfoutput>
@@ -43,10 +45,4 @@ Result:
     
     Hello Patrick
     You have just won $1000!
-    Well, $600, after taxes.           
-   
-## Installation
-
-Mustache is a single component. To install, download the Mustache.cfc file from the mustache directory.
-   
-                            
+    Well, $600, after taxes.
