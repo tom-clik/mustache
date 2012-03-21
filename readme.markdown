@@ -4,6 +4,7 @@ Chris Wanstrath's [Mustache](http://mustache.github.com/) templates for [ColdFus
 
 ## Basic Usage                              
 
+    <cfset mustache = createObject("component", "Mustache").init()>
     <cfset template = "Hello, {{thing}}!">
     <cfset context = structNew()>
     <cfset context['thing'] = 'World'>
@@ -44,6 +45,8 @@ Result:
     You have just won $1000!
     Well, $600, after taxes.           
    
-   
+## Installation
+
+Mustache is a single component. To install, download the Mustache.cfc file from the mustache directory.
    
                             
