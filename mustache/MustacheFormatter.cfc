@@ -1,10 +1,7 @@
 <!---
 	This extention to Mustache provides the following functionality:
 
-	1) It removes extra new lines produced when there's no output from a section which
-	   I think produces output closer to what's expected.
-
-	2) It adds Ctemplate-style "modifiers" (or formatters). You can now use the following
+	1) It adds Ctemplate-style "modifiers" (or formatters). You can now use the following
 	   syntax with your variables:
 
 	   Hello "{{NAME:leftPad(20):upperCase}}"
@@ -17,12 +14,6 @@
 
 	   This method provides is more readable and easy to implement over the lambda functionality
 	   in the default Mustache syntax.
-
-	3) Adds support for dot notiation (which has been added to Mustache: https://github.com/defunkt/mustache/issues/6#issuecomment-903978)
-
-	4) Handles multi-line comments
-
-	5) Better whitespace management for array and query blocks (to prevent extra empty lines between each input)
 --->
 <cfcomponent extends="Mustache" output="false">
 
@@ -51,12 +42,12 @@
 		<!---// look for functional calls (see #2) //--->
 		<cfloop index="local.fn" array="#local.extras#">
 			<!---// all formatting functions start with two underscores //--->
-			<cfset local.fn = "__" & local.fn />
+			<cfset local.fn = trim("__" & local.fn) />
 			<cfset local.fnName = listFirst(local.fn, "(") />
 			<!---// check to see if we have a function matching this fn name //--->
 			<cfif structKeyExists(variables, local.fnName) and isCustomFunction(variables[local.fnName])>
-				<!---// get the arguments //--->
-				<cfif find("(", local.fn)>
+				<!---// get the arguments (but ignore empty arguments) //--->
+				<cfif reFind("\([^\)]+\)", local.fn)>
 					<!---// get the arguments from the function name //--->
 					<cfset local.args = replace(local.fn, local.fnName & "(", "") />
 					<!---// gets the arguments from the string //--->

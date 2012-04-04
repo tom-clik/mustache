@@ -1,30 +1,30 @@
 <!---
-Mustache.cfc
-https://github.com/pmcelhaney/Mustache.cfc
+	Mustache.cfc
+	https://github.com/dswitzer/Mustache.cfc
 
-The MIT License
+	The MIT License
 
-Copyright (c) 2009 Chris Wanstrath (Ruby)
-Copyright (c) 2010 Patrick McElhaney (ColdFusion)
+	Copyright (c) 2009 Chris Wanstrath (Ruby)
+	Copyright (c) 2010 Patrick McElhaney (ColdFusion)
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files (the
+	"Software"), to deal in the Software without restriction, including
+	without limitation the rights to use, copy, modify, merge, publish,
+	distribute, sublicense, and/or sell copies of the Software, and to
+	permit persons to whom the Software is furnished to do so, subject to
+	the following conditions:
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+	NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+	LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+	OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --->
 <cfcomponent output="false">
 	<!---
@@ -38,6 +38,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cfset variables.SectionRegEx = createObject("java","java.util.regex.Pattern").compile("\{\{(##|\^)\s*(\w+(?:(?:\.\w+){1,})?)\s*}}(.*?)\{\{/\s*\2\s*\}\}", 32) />
 	<!---// captures nested structure references (see #3) //--->
 	<cfset variables.CommentRegEx = createObject("java","java.util.regex.Pattern").compile("((^\r?\n?)|\s+)?\{\{!.*?\}\}(\r?\n?(\r?\n?)?)?", 40) />
+	<!---// captures nested structure references (see #3) //--->
+	<cfset variables.HeadTailBlankLinesRegEx = createObject("java","java.util.regex.Pattern").compile(javaCast("string", "(^(\r?\n))|((?<!(\r?\n))(\r?\n)$)"), 32) />
 	<!---// for tracking partials //--->
 	<cfset variables.partials = {} />
 
@@ -48,9 +50,25 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		<cfreturn this />
 	</cffunction>
 
+	<!---// function is called for any new template //--->
 	<cffunction name="render" output="false">
 		<cfargument name="template" default="#readMustacheFile(ListLast(getMetaData(this).name, '.'))#" />
 		<cfargument name="context" default="#this#" />
+		<cfargument name="partials" hint="the partial objects" required="true" default="#structNew()#" />
+
+		<!---// render the results //--->
+		<cfset var results = renderFragment(argumentCollection=arguments) />
+
+		<!---// remove single blank lines at the head/tail of the stream //--->
+		<cfset results = variables.HeadTailBlankLinesRegEx.matcher(javaCast("string", results)).replaceAll("") />
+
+		<cfreturn results />
+	</cffunction>
+
+	<!---// this function handles all the various fragments of the template //--->
+	<cffunction name="renderFragment" output="false">
+		<cfargument name="template" />
+		<cfargument name="context" />
 		<cfargument name="partials" hint="the partial objects" required="true" default="#structNew()#" />
 
 		<!---// clean the comments from the template //--->
@@ -101,7 +119,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 		<cfset loc.ctx = get(arguments.tagName, arguments.context) />
 		<cfif arguments.type neq "^" and isStruct(loc.ctx) and !StructIsEmpty(loc.ctx)>
-			<cfreturn render(arguments.inner, loc.ctx, arguments.partials) />
+			<cfreturn renderFragment(arguments.inner, loc.ctx, arguments.partials) />
 		<cfelseif arguments.type neq "^" and isQuery(loc.ctx) AND loc.ctx.recordCount>
 			<cfreturn renderQuerySection(arguments.inner, loc.ctx, arguments.partials) />
 		<cfelseif arguments.type neq "^" and isArray(loc.ctx) and !ArrayIsEmpty(loc.ctx)>
@@ -148,7 +166,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		<cfset arguments.template = rtrim(arguments.template) />
 
 		<cfloop query="arguments.context">
-			<cfset ArrayAppend(result, render(arguments.template, arguments.context, arguments.partials)) />
+			<cfset ArrayAppend(result, renderFragment(arguments.template, arguments.context, arguments.partials)) />
 		</cfloop>
 		<cfreturn ArrayToList(result, "") />
 	</cffunction>
@@ -164,7 +182,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 		<cfset loc.result = [] />
 		<cfloop array="#arguments.context#" index="loc.item">
-			<cfset ArrayAppend(loc.result, render(arguments.template, loc.item, arguments.partials)) />
+			<cfset ArrayAppend(loc.result, renderFragment(arguments.template, loc.item, arguments.partials)) />
 		</cfloop>
 		<cfreturn ArrayToList(loc.result, "") />
 	</cffunction>
@@ -247,11 +265,19 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 	<cffunction name="get" access="private" output="false">
 		<cfargument name="key" />
-		<cfargument name="context"/>
+		<cfargument name="context" />
+
+		<cfset var local = {} />
 
 		<!---// if we're a nested key, do a nested lookup //--->
 		<cfif find(".", key)>
-			<cfreturn get(listRest(key, "."), context[listFirst(key, ".")]) />
+			<cfset local.key = listRest(key, ".") />
+			<cfset local.root = listFirst(key, ".") />
+			<cfif structKeyExists(context, local.root)>
+				<cfreturn get(local.key, context[local.root]) />
+			<cfelse>
+				<cfreturn "" />
+			</cfif>
 		<cfelseif isStruct(arguments.context) && structKeyExists(arguments.context, arguments.key) >
 			<cfif isCustomFunction(arguments.context[arguments.key])>
 				<cfreturn evaluate("arguments.context.#arguments.key#('')")>
