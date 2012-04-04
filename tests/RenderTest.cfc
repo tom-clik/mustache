@@ -2,7 +2,7 @@
 
 	<cffunction name="setup">
 		<cfset partials = {}/>
-		<cfset stache = createObject("component", "mustache.Mustache").init()/>
+		<cfset stache = createObject("component", "mustache.MustachePlus").init() />
 	</cffunction>
 
 	<cffunction name="tearDown">
@@ -44,7 +44,7 @@
     <cfset context['!'] = "FAIL" />
     <cfset context['the'] = "FAIL" />
     <cfset template = "What {{!the}} what?" />
-    <cfset expected = "What  what?" />
+    <cfset expected = "What what?" />
   </cffunction>
 
   <cffunction name="falseSectionsAreHidden">
@@ -246,7 +246,7 @@
 		<cfset template = "{{##set}}This sentence should be showing.{{/set}}{{^set}}This sentence should not.{{/set}}" />
 		<cfset expected = "This sentence should be showing." />
 	</cffunction>
-	
+
 	<cffunction name="invertedSectionHiddenIfQueryNotEmpty">
 	    <cfset contacts = queryNew("name,phone")/>
 	    <cfset queryAddRow(contacts)>
@@ -256,7 +256,7 @@
 		<cfset template = "{{##set}}This sentence should be showing.{{/set}}{{^set}}This sentence should not.{{/set}}" />
 		<cfset expected = "This sentence should be showing." />
 	</cffunction>
-	
+
 	<cffunction name="invertedSectionHiddenIfArrayNotEmpty">
 	    <cfset context =  {set = [1]}  />
 		<cfset template = "{{##set}}This sentence should be showing.{{/set}}{{^set}}This sentence should not.{{/set}}" />
