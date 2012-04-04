@@ -49,20 +49,20 @@ Result:
 
 A custom tag is also included so you can render templates like so:
 
-<cfset context = {
-	name = "Patrick",
-	value = 1000,
-	in_ca = true,
-	taxed_value = 600
-} />
+    <cfset context = {
+        name = "Patrick",
+        value = 1000,
+        in_ca = true,
+        taxed_value = 600
+    } />
 
-<cfimport taglib="/path/to/mustache/dir" prefix="stache" />
-<stache:mustache context="#context#">
-<cfoutput>
-Hello {{name}}
-You have just won ${{value}}!
-{{##in_ca}}
-Well, ${{taxed_value}}, after taxes.
-{{/in_ca}}
-</cfoutput>
-</stache:mustache>
+    <cfimport taglib="/path/to/mustache/dir" prefix="stache" />
+    <stache:mustache context="#context#">
+    <cfoutput>
+    Hello {{name}}
+    You have just won ${{value}}!
+    {{##in_ca}}
+    Well, ${{taxed_value}}, after taxes.
+    {{/in_ca}}
+    </cfoutput>
+    </stache:mustache>
