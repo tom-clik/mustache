@@ -37,11 +37,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cfset variables.SectionRegEx = CreateObject("java","java.util.regex.Pattern").compile("\{\{(##|\^)\s*(\w+)\s*}}(.*?)\{\{/\s*\2\s*\}\}", 32)>
 	<cfset variables.TagRegEx = CreateObject("java","java.util.regex.Pattern").compile("\{\{(!|\{|&|\>)?\s*(\w+).*?\}?\}\}", 32) />
 	<cfset variables.partials = {} />
+	<cfset variables.reFindCache = {}/>
 
 	<cffunction name="init" output="false">
 		<cfargument name="partials" hint="the partial objects" default="#StructNew()#">
 
-		<cfset variables.partials = arguments.partials />
+		<cfset setPartials(arguments.partials) />
+
 		<cfreturn this />
 	</cffunction>
 
@@ -224,10 +226,18 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	<cffunction name="ReFindNoCaseValues" access="private" output="false">
 		<cfargument name="text"/>
 		<cfargument name="re"/>
+
+		<!--- store the result trees in cache, save on reparsing.
+			removed all scope prefixes for speed --->
+		<cfset var key = text & ":" & re />
+		<cfif structKeyExists(reFindCache, key)>
+			<cfreturn reFindCache[key] />
+		</cfif>
+
 		<cfset var loc = {}>
 		
 		<cfset loc.results = []/>
-		<cfset loc.matcher = arguments.re.matcher(arguments.text)/>
+		<cfset loc.matcher = re.matcher(text)/>
 		<cfset loc.i = 0 />
 		<cfset loc.nextMatch = "" />
 		<cfif loc.matcher.Find()>
@@ -240,6 +250,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 				</cfif>
 			</cfloop>
 		</cfif>
+
+		<cfset reFindCache[key] = loc.results />
+
 		<cfreturn loc.results />
 	</cffunction>
 
