@@ -5,10 +5,10 @@
 
 	<cffunction name="getComplexContext" access="public">
 		<cfset var context = {} />
-		<cfset var context["Settings"] = {EnableEmailUpdates=true, ShowPrivateNote=false, Signature="Support Team"} />
-		<cfset var context["Assignee"] = {Name="Tommy"} />
-		<cfset var context["Customer"] = {Name="Jenny", Phone="867-5309"} />
-		<cfset var context["Ticket"]   = {Number="1234", Subject="E-mail not working", Priority="Medium", Description="Here's a description#variables.crlf2#with some#variables.crlf2#new lines", Note="User needs to update their software to the latest version.", PrivateNote="Client doesn't want to listen to instructions"} />
+		<cfset context["Settings"] = {EnableEmailUpdates=true, ShowPrivateNote=false, Signature="Support Team"} />
+		<cfset context["Assignee"] = {Name="Tommy"} />
+		<cfset context["Customer"] = {Name="Jenny", Phone="867-5309"} />
+		<cfset context["Ticket"]   = {Number="1234", Subject="E-mail not working", Priority="Medium", Description="Here's a description#variables.crlf2#with some#variables.crlf2#new lines", Note="User needs to update their software to the latest version.", PrivateNote="Client doesn't want to listen to instructions"} />
 
 		<cfreturn context />
 	</cffunction>
