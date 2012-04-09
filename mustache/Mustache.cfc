@@ -119,21 +119,21 @@
 		<cfargument name="template" />
 		<cfargument name="context" />
 		<cfargument name="partials"/>
-		<cfset var local = {} />
+		<cfset var loc = {} />
 
-		<!---// if running on a component //--->
+		<!--- if running on a component --->
 		<cfif isObject(arguments.context)>
-			<!---// call the function and pass in the arguments //--->
-			<cfinvoke component="#arguments.context#" method="#arguments.tagName#" returnvariable="local.results">
+			<!--- call the function and pass in the arguments --->
+			<cfinvoke component="#arguments.context#" method="#arguments.tagName#" returnvariable="loc.results">
 				<cfinvokeargument name="1" value="#arguments.template#">
 			</cfinvoke>
-		<!---// otherwise we have a struct w/a reference to a function or closure //--->
+		<!--- otherwise we have a struct w/a reference to a function or closure --->
 		<cfelse>
-			<cfset local.fn = arguments.context[arguments.tagName] />
-			<cfset local.results = local.fn(arguments.template) />
+			<cfset loc.fn = arguments.context[arguments.tagName] />
+			<cfset loc.results = loc.fn(arguments.template) />
 		</cfif>
 
-		<cfreturn local.results />
+		<cfreturn loc.results />
 	</cffunction>
 
 	<cffunction name="convertToBoolean">
