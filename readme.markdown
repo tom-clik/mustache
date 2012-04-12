@@ -13,7 +13,7 @@ Mustache is a single component. To install, download the Mustache.cfc file from 
     <cfset context = structNew()>
     <cfset context['thing'] = 'World'>
 
-    <cfouptut>#mustache.render(template, context)#</cfouptut>
+    <cfoutput>#mustache.render(template, context)#</cfoutput>
 
 ## Creating Views
                 
