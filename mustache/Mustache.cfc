@@ -158,7 +158,7 @@
 		<cfreturn local.results />
 	</cffunction>
 
-	<cffunction name="convertToBoolean">
+	<cffunction name="convertToBoolean" access="private" output="false">
 		<cfargument name="value"/>
 
 		<cfif isBoolean(arguments.value)>
@@ -254,14 +254,29 @@
 		<cfif arguments.type eq "!">
 			<cfreturn ""/>
 		<cfelseif (arguments.type eq "{") or (arguments.type eq "&")>
-			<cfset results = get(arguments.tagName, arguments.context, arguments.partials)/>
+			<cfset results = textEncode(get(arguments.tagName, arguments.context, arguments.partials))/>
 		<cfelseif arguments.type eq ">">
 			<cfset results = renderPartial(arguments.tagName, arguments.context, arguments.partials)/>
 		<cfelse>
-			<cfset results = htmlEditFormat(get(arguments.tagName, arguments.context, arguments.partials))/>
+			<cfset results = htmlEncode(get(arguments.tagName, arguments.context, arguments.partials))/>
 		</cfif>
 
 		<cfreturn onRenderTag(results, arguments)/>
+	</cffunction>
+
+	<cffunction name="textEncode" access="private" output="false"
+		hint="Encodes a plain text string (can be overridden)">
+		<cfargument name="input"/>
+
+		<!---// we normally don't want to do anything, but this function is manually so we can overwrite the default behavior of {{{token}}} //--->
+		<cfreturn arguments.input />
+	</cffunction>
+
+	<cffunction name="htmlEncode" access="private" output="false"
+		hint="Encodes a string into HTML (can be overridden)">
+		<cfargument name="input"/>
+
+		<cfreturn htmlEditFormat(arguments.input)/>
 	</cffunction>
 
 	<cffunction name="onRenderTag" access="private" output="false"
