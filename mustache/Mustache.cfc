@@ -253,11 +253,17 @@
 		<cfif arguments.type eq "!">
 			<cfreturn ""/>
 		<cfelseif (arguments.type eq "{") or (arguments.type eq "&")>
-			<cfset results = textEncode(get(arguments.tagName, arguments.context, arguments.partials))/>
+			<cfset arguments.value = get(arguments.tagName, arguments.context, arguments.partials)/>
+			<cfset arguments.valueType = "text"/>
+			<cfset results = textEncode(arguments.value)/>
 		<cfelseif arguments.type eq ">">
-			<cfset results = renderPartial(arguments.tagName, arguments.context, arguments.partials)/>
+			<cfset arguments.value = renderPartial(arguments.tagName, arguments.context, arguments.partials)/>
+			<cfset arguments.valueType = "partial"/>
+			<cfset results = arguments.value/>
 		<cfelse>
-			<cfset results = htmlEncode(get(arguments.tagName, arguments.context, arguments.partials))/>
+			<cfset arguments.value = get(arguments.tagName, arguments.context, arguments.partials)/>
+			<cfset arguments.valueType = "html"/>
+			<cfset results = htmlEncode(arguments.value)/>
 		</cfif>
 
 		<cfreturn onRenderTag(results, arguments)/>
