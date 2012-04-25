@@ -121,6 +121,14 @@
     <cfset expected = "(Jenny's number is 867-5309)" />
   </cffunction>
 
+  <cffunction name="noSpaceTokenTest_array">
+    <cfset context = {
+      list = [{item='a'}, {item='b'}, {item='c'}, {item='d'}, {item='e'}]
+    } />
+    <cfset template = "{{##list}}({{item}}){{/list}}" />
+    <cfset expected = "(a)(b)(c)(d)(e)" />
+  </cffunction>
+
   <cffunction name="implicitIterator_String">
     <cfset context = {
       list = ['a', 'b', 'c', 'd', 'e']
@@ -139,10 +147,10 @@
 
   <cffunction name="implicitIterator_Decimal">
     <cfset context = {
-      list = [1, 2, 3, 4, 5]
+      list = [1.10, 2.20, 3.30, 4.40, 5.50]
     } />
     <cfset template = "{{##list}}({{.}}){{/list}}" />
-    <cfset expected = "(1.1)(2.2)(3.3)(4.4)(5.5)" />
+    <cfset expected = "(1.10)(2.20)(3.30)(4.40)(5.50)" />
   </cffunction>
 
   <cffunction name="queryAsSection">
