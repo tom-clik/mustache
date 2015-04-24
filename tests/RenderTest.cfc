@@ -21,6 +21,18 @@
     <cfset expected = "Hello, World!" />
   </cffunction>
 
+  <cffunction name="basicWithSpace">
+    <cfset context = { thing = 'world'} />
+    <cfset template = "Hello, {{ thing }}!" />
+    <cfset expected = "Hello, World!" />
+  </cffunction>
+
+  <cffunction name="basicWithMuchSpace">
+    <cfset context = { thing = 'world'} />
+    <cfset template = "Hello, {{             thing    }}!" />
+    <cfset expected = "Hello, World!" />
+  </cffunction>
+
   <cffunction name="lessBasic">
     <cfset context = { beverage = 'soda', person = 'Bob' } />
     <cfset template = "It's a nice day for {{beverage}}, right {{person}}?" />
@@ -62,6 +74,18 @@
    <cffunction name="trueSectionsAreShown">
     <cfset context =  { set = true }  />
     <cfset template = "Ready {{##set}}set {{/set}}go!" />
+    <cfset expected = "Ready set go!" />
+  </cffunction>
+
+  <cffunction name="falseSectionsWithSpaceAreHidden">
+    <cfset context =  { set = false } />
+    <cfset template = "Ready {{ ##set }}set {{ /set }}go!" />
+    <cfset expected = "Ready go!" />
+  </cffunction>
+
+   <cffunction name="trueSectionsWithSpaceAreShown">
+    <cfset context =  { set = true }  />
+    <cfset template = "Ready {{ ##set }}set {{ /set }}go!" />
     <cfset expected = "Ready set go!" />
   </cffunction>
 
