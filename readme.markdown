@@ -66,3 +66,6 @@ A custom tag is also included so you can render templates like so:
     {{/in_ca}}
     </cfoutput>
     </stache:mustache>
+    
+## Testing
+To run the files in the `tests` folder you first need to download and install [MXUnit](http://mxunit.org/). MXUnit is not required to run Mustache.cfc
