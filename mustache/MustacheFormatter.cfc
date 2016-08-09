@@ -82,7 +82,7 @@
 		<cfset local.i = 0 />
 		<cfset local.nextMatch = "" />
 		<cfloop condition="#local.matcher.find()#">
-			<cfset local.nextMatch = local.matcher.group(0) />
+			<cfset local.nextMatch = local.matcher.group() />
 			<cfif isDefined('local.nextMatch')>
 				<cfset arrayAppend(local.results, local.nextMatch) />
 			<cfelse>
