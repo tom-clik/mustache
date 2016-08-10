@@ -35,12 +35,16 @@
 	<cfset variables.Mustache.HeadTailBlankLinesRegEx = variables.Mustache.Pattern.compile(javaCast("string", "(^(\r?\n))|((?<!(\r?\n))(\r?\n)$)"), 32)/>
 	<!--- for tracking partials --->
 	<cfset variables.Mustache.partials = {}/>
+	<!--- Raising Errors --->
+	<cfset variables.Mustache.RaiseErrors = "true">
 
 	<cffunction name="init" access="public" output="false"
 		hint="initalizes and returns the object">
 		<cfargument name="partials" hint="the partial objects" default="#StructNew()#">
+		<cfargument name="raiseErrors" hint="raise errors if template is not found" default="true">
 
 		<cfset setPartials(arguments.partials)/>
+		<cfset setRaiseErrors(arguments.RaiseErrors)>
 
 		<cfreturn this/>
 	</cffunction>
@@ -366,8 +370,16 @@
 		<cfargument name="filename"/>
 
 		<cfset var template= ""/>
-
-		<cffile action="read" file="#getDirectoryFromPath(getMetaData(this).path)##arguments.filename#.mustache" variable="template"/>
+		<cftry>
+			<cffile action="read" file="#getDirectoryFromPath(getMetaData(this).path)##arguments.filename#.mustache" variable="template"/>
+			<cfcatch type="any">
+				<cfif getRaiseErrors()>
+					<cfthrow type="Mustache.TemplateMissing" message="Cannot not find `#arguments.filename#` template"/>
+				<cfelse>
+					<cfreturn ""/>
+				</cfif>
+			</cfcatch>
+		</cftry>
 		<cfreturn trim(template)/>
 	</cffunction>
 
@@ -455,6 +467,14 @@
 		<cfargument name="options"/>
 
 		<cfset variables.Mustache.partials = arguments.partials/>
+	</cffunction>
+	
+	<cffunction name="getRaiseErrors" access="public" output="false">
+		<cfreturn variables.Mustache.RaiseErrors>
+	</cffunction>
+	<cffunction name="setRaiseErrors" access="public" output="false">
+		<cfargument name="value" type="boolean" required="true">
+		<cfset variables.Mustache.RaiseErrors = arguments.value>
 	</cffunction>
 
 </cfcomponent>
