@@ -12,4 +12,52 @@
 	<cfset this.setClientCookies = false />
 	<cfset this.setDomainCookies = false />
 	<cfset this.sessionManagement = false />
+
+	<cfscript>
+	public void function onError(e) {
+		
+		var niceError = ["message"=e.message,"type"=e.type,"detail"=e.detail,"code"=e.errorcode,"ExtendedInfo"=deserializeJSON(e.ExtendedInfo)];
+		
+		// supply original tag context in extended info
+		if (IsDefined("niceError.ExtendedInfo.tagcontext")) {
+			niceError["tagcontext"] =  niceError.ExtendedInfo.tagcontext;
+			StructDelete(niceError.ExtendedInfo,"tagcontext");
+		}
+		else {
+			niceError["tagcontext"] =  e.TagContext;
+		}
+		
+		// set to true in any API to always get JSON errors even when testing
+		param name="request.prc.isAjaxRequest" default="false" type="boolean";
+		
+		if (e.type eq "missingInclude") {
+	        cfheader(statuscode = 404);
+	        cfinclude(template="/errorhandling/404.cfm");
+	        cfexit;
+	    }
+
+		if (e.type == "ajaxError" OR request.prc.isAjaxRequest) {
+			
+			local.errorCode = createUUID();
+			local.filename = this.errorFolder & "/" & local.errorCode & ".html";
+			writeDump(var=niceError,output=local.filename,format="html");
+			cfheader(statuscode = 500);
+			local.error = {
+				"status": 500,
+				"filename": local.filename,
+				"message" : e.message,
+				"code": local.errorCode
+			}
+			
+			WriteOutput(serializeJSON(local.error));
+		}
+		else {
+			
+			writeDump(niceError);
+			
+		}
+		
+	}
+	</cfscript>
+
 </cfcomponent>

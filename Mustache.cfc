@@ -57,7 +57,15 @@
 		<cfargument name="options" hint="options object (can be used in overridden functions to pass additional instructions)" required="false" default="#structNew()#"/>
 
 		<!--- Replace partials in template --->
-		<cfset arguments.template=replacePartialsInTemplate(arguments.template,arguments.partials) />
+		<cftry>
+			<cfset arguments.template=replacePartialsInTemplate(arguments.template,arguments.partials) />
+			<cfcatch>
+				<cfset local.extendedinfo = SerializeJSON({"partials"=arguments.partials})>
+				<cfthrow extendedinfo="#local.extendedinfo#" message="Unable to find partial">
+			
+			</cfcatch>
+		</cftry>
+
 
 		<cfset var results = renderFragment(argumentCollection=arguments)/>
 
@@ -454,6 +462,15 @@
 			<cfreturn arguments.partials[arguments.name] />
 		<cfelse>
 			<!--- Fetch from file as last resort --->
+			<cfscript>
+				local.extendedinfo = {"partials"=arguments.partials};
+				throw(
+					extendedinfo = SerializeJSON(local.extendedinfo),
+					message      = "Unable to find partial"
+				);
+			
+			</cfscript>
+			
 			<cfreturn readMustacheFile(arguments.name) />
 		</cfif>
 	</cffunction>
