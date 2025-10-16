@@ -54,6 +54,7 @@ preview to render templates as shown
 {{>author}}
 </cfsavecontent>
 
+<cfset date = "20/03/2007">
 <cfset context.imagebeforeheadline = 0>
 <cfset context.imageafterheadline = 1>
 <cfset context.imagebeforedescription = 0>
@@ -66,9 +67,9 @@ preview to render templates as shown
 		{{>linkEndIf}}{{/showImages}}</div>"> --->
 
 
-<cfoutput>#mustache.render(template=template, context=context,partials=partials)#</cfoutput>
+<cfoutput>#htmlEditFormat(mustache.render(template=template, context=context,partials=partials))#</cfoutput>
 
 <cfset context['country'] = 'England'>
 <cfset context.article = {headline="Man bites dog",author="Lunchtime O'Booze",test="test"}>
 
-<cfoutput>#mustache.render(template=template, context=context,partials=partials)#</cfoutput>
+<cfoutput>#htmlEditFormat(mustache.render(template=template, context=context,partials=partials))#</cfoutput>
